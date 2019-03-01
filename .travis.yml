@@ -1,0 +1,43 @@
+sudo: true
+language: C++
+os:
+  - linux
+ 
+compiler:
+  - g++
+  - clang++
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then  sudo apt-get install -y libhdf5-dev libhdf5-serial-dev libmysqlclient-dev; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then 
+      python3-config --prefix;
+      ls /usr/local/local/Cellar/python;
+    fi  
+      #rm /usr/local/opt/python
+      #ln -s /usr/local/opt/python /usr/local/Cellar/python
+      # ln -s /usr/local/opt/python/Frameworks/Python.framework/Versions/3.6/include/python3.6m /usr/local/opt/python/Frameworks/Python.framework/Versions/3.6/include/python3.6;
+      #ls /usr/local/opt/python/Frameworks/Python.framework/Versions/3.6/include/python3.6;
+      # brew install libiconv mysql-client hdf5; 
+      # brew link --overwrite gcc; 
+  - wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.bz2
+  - tar -jxf boost_1_67_0.tar.bz2
+  - cd boost_1_67_0
+  - ./bootstrap.sh --with-python=python3
+  - cat project-config.jam
+  - ./b2 release link=shared -d0 --with-python --with-date_time --with-filesystem --with-system --with-serialization --with-test
+  - ls ./stage/lib
+  - cd
+  - git clone https://github.com/tboox/xmake.git tboox/xmake --depth 1
+  - cd ./tboox/xmake
+  - ./scripts/get.sh __local__
+  - cd
+
+script:
+  - cd ./build/fasiondog/hikyuu
+  - export BOOST_ROOT=./boost_1_67_0
+  - export BOOST_LIB=./boost_1_67_0/stage/lib
+  - ls .
+  - xmake f --with-unit-test=y --cxx=$CXX
+  - xmake
+  - xmake r unit-test
+  
