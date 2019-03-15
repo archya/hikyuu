@@ -23,6 +23,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/nvp.hpp>
+#include "../serialization/KData_serialization.h"
 #endif
 
 
@@ -173,6 +174,18 @@ private:
             } else if (arg.type() == typeid(string)) {
                 type = "string";
                 value = boost::any_cast<string>(arg);
+            } else if (arg.type() == typeid(Stock)) {
+                type = "stock";
+                value = "stock";
+                stock = boost::any_cast<Stock>(arg);
+            } else if (arg.type() == typeid(KQuery)) {
+                type = "query";
+                value = "query";
+                query = boost::any_cast<KQuery>(arg);
+            } else if (arg.type() == typeid(KData)) {
+                type = "kdata";
+                value = "kdata";
+                kdata = boost::any_cast<KData>(arg);
             } else {
                 type = "Unknown";
                 value = "Unknown";
@@ -182,12 +195,18 @@ private:
         string name;
         string type;
         string value;
+        Stock  stock;
+        KQuery query;
+        KData  kdata;
 
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version) {
             ar & BOOST_SERIALIZATION_NVP(name);
             ar & BOOST_SERIALIZATION_NVP(type);
             ar & BOOST_SERIALIZATION_NVP(value);
+            ar & BOOST_SERIALIZATION_NVP(stock);
+            ar & BOOST_SERIALIZATION_NVP(query);
+            ar & BOOST_SERIALIZATION_NVP(kdata);
         }
     };
 
@@ -220,6 +239,12 @@ private:
                 m_params[record.name] = boost::lexical_cast<double>(record.value);
             } else if (record.type == "string") {
                 m_params[record.name] = record.value;
+            } else if (record.type == "stock") {
+                m_params[record.name] = record.stock;
+            } else if (record.type == "query") {
+                m_params[record.name] = record.query;
+            } else if (record.type == "kdata") {
+                m_params[record.name] = record.kdata;
             } else {
                 std::cout << "Unknown type! [Parameter::load]" << std::endl;
             }

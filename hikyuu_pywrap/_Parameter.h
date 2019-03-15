@@ -11,6 +11,7 @@
 #include <boost/python.hpp>
 #include <hikyuu/utilities/Parameter.h>
 #include <hikyuu/Log.h>
+#include <hikyuu/KData.h>
 #include "pickle_support.h"
 
 namespace hku {
@@ -37,6 +38,57 @@ struct AnyToPython{
         } else if (x.type() == typeid(string)) {
             string s(boost::any_cast<string>(x));
             return Py_BuildValue("s", s.c_str());
+
+        } else if (x.type() == typeid(Stock)) {
+            const Stock& stk = boost::any_cast<Stock>(x);
+            string cmd;
+            if (stk.isNull()) {
+                cmd = "Stock()";
+            } else {
+                cmd = "getStock('" + stk.market_code() + "')";
+            }
+            object* o = new object(eval(cmd.c_str()));
+            return o->ptr();
+
+        } else if (x.type() == typeid(KQuery)) {
+            const KQuery& query = boost::any_cast<KQuery>(x);
+            std::stringstream cmd (std::stringstream::out);
+            if (query.queryType() == KQuery::INDEX) {
+                cmd << "QueryByIndex(" << query.start() << "," << query.end() 
+                    << ", Query." << KQuery::getKTypeName(query.kType()) 
+                    << ", Query." << KQuery::getRecoverTypeName(query.recoverType()) << ")";
+            } else {
+                cmd << "QueryByDate(Datetime("  << query.startDatetime() 
+                    << "), Datetime(" << query.endDatetime() << "), " 
+                    << "Query." << KQuery::getKTypeName(query.kType()) 
+                    << "Query." << KQuery::getRecoverTypeName(query.recoverType()) << ")";
+            }
+            object* o = new object(eval(cmd.str().c_str()));
+            return o->ptr();
+
+        } else if (x.type() == typeid(KData)) {
+            KData kdata = boost::any_cast<KData>(x);
+            Stock stock = kdata.getStock();
+            KQuery query = kdata.getQuery();
+            std::stringstream cmd;
+            if (stock.isNull()) {
+                cmd << "KData()";
+            } else {
+                cmd << "getStock('" << stock.market_code() << "').getKData(";
+                if (query.queryType() == KQuery::INDEX) {
+                    cmd << "QueryByIndex(" << query.start() << "," << query.end()
+                        << ", Query." << KQuery::getKTypeName(query.kType())
+                        << ", Query." << KQuery::getRecoverTypeName(query.recoverType()) << ")";
+                } else {
+                    cmd << "QueryByDate(Datetime("  << query.startDatetime()
+                        << "), Datetime(" << query.endDatetime() << "), "
+                        << "Query." << KQuery::getKTypeName(query.kType())
+                        << "Query." << KQuery::getRecoverTypeName(query.recoverType()) << ")";
+                }
+            }
+            std::cout << cmd.str() << std::endl;
+            object* o = new object(eval(cmd.str().c_str()));
+            return o->ptr();
 
         } else {
             HKU_ERROR("convert failed! Unkown type! Will return None!"
@@ -83,6 +135,24 @@ inline void Parameter::set<object>(const string& name, const object& o) {
             return;
         }
 
+        extract<Stock> x5(o);
+        if (x5.check()) {
+            m_params[name] = x5();
+            return;
+        }
+
+        extract<KQuery> x6(o);
+        if (x6.check()) {
+            m_params[name] = x6();
+            return;
+        }
+
+        extract<KData> x7(o);
+        if (x7.check()) {
+            m_params[name] = x7();
+            return;
+        }
+
         throw std::logic_error("Unsuport Type! " + name);
         return;
     }
@@ -122,6 +192,36 @@ inline void Parameter::set<object>(const string& name, const object& o) {
         extract<string> x4(o);
         if (x4.check()) {
             m_params[name] = x4();
+            return;
+        }
+        throw std::logic_error(mismatch);
+        return;
+    }
+
+    if (m_params[name].type() == typeid(Stock)) {
+        extract<Stock> x5(o);
+        if (x5.check()) {
+            m_params[name] = x5();
+            return;
+        }
+        throw std::logic_error(mismatch);
+        return;
+    }
+
+    if (m_params[name].type() == typeid(KQuery)) {
+        extract<KQuery> x6(o);
+        if (x6.check()) {
+            m_params[name] = x6();
+            return;
+        }
+        throw std::logic_error(mismatch);
+        return;
+    }
+
+    if (m_params[name].type() == typeid(KData)) {
+        extract<KData> x6(o);
+        if (x6.check()) {
+            m_params[name] = x6();
             return;
         }
         throw std::logic_error(mismatch);

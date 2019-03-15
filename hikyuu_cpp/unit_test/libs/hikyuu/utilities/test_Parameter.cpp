@@ -75,6 +75,38 @@ BOOST_AUTO_TEST_CASE( test_Parameter ) {
     p2.set<bool>("bool", true);
 
     BOOST_CHECK(p1==p2);
+
+    /** @arg 测试使用 Stock 做为参数 */
+    Stock stk = getStock("sh600000");
+    Parameter p;
+    p.set<Stock>("stk", stk);
+    Stock stk2 = p.get<Stock>("stk");
+    BOOST_CHECK(stk == stk2);
+
+    /** @arg 测试使用 KQuery 做为参数 */
+    KQuery query(10, 20);
+    p = Parameter();
+    p.set<KQuery>("query", query);
+    KQuery q2;
+    q2 = p.get<KQuery>("query");
+    BOOST_CHECK(query == q2);
+
+    /** @arg 测试使用 KData 做为参数 */
+    KData k = stk.getKData(query);
+    p = Parameter();
+    p.set<KData>("k", k);
+    KData k2 = p.get<KData>("k");
+    BOOST_CHECK(k.size() == k2.size());
+    BOOST_CHECK(k.getStock() == k2.getStock());
+    BOOST_CHECK(k.getQuery() == k2.getQuery());
+
+    k = KData();
+    p = Parameter();
+    p.set<KData>("k", k);
+    k2 = p.get<KData>("k");
+    BOOST_CHECK(k.size() == k2.size());
+    BOOST_CHECK(k.getStock() == k2.getStock());
+    BOOST_CHECK(k.getQuery() == k2.getQuery());
 }
 
 
@@ -89,6 +121,12 @@ BOOST_AUTO_TEST_CASE( test_Parameter_serialize ) {
     p1.set<bool>("bool", true);
     p1.set<double>("p", 0.101);
     p1.set<string>("string", "This is string!");
+    Stock stk = getStock("sh600000");
+    KQuery q = KQueryByDate(Datetime(200001041025), Datetime(200001041100), KQuery::MIN5);
+    KData k = stk.getKData(q);
+    p1.set<Stock>("stk", stk);
+    p1.set<KQuery>("query", q);
+    p1.set<KData>("kdata", k);
     {
         std::ofstream ofs(filename);
         boost::archive::xml_oarchive oa(ofs);
@@ -106,6 +144,12 @@ BOOST_AUTO_TEST_CASE( test_Parameter_serialize ) {
     BOOST_CHECK(p2.get<bool>("bool") == true);
     BOOST_CHECK(p2.get<double>("p") == 0.101);
     BOOST_CHECK(p2.get<string>("string") == "This is string!");
+    BOOST_CHECK(p2.get<Stock>("stk") == stk);
+    BOOST_CHECK(p2.get<KQuery>("query") == q);
+    KData k2 = p2.get<KData>("kdata");
+    BOOST_CHECK(k.size() == k2.size());
+    BOOST_CHECK(k.getStock() == k2.getStock());
+    BOOST_CHECK(k.getQuery() == k2.getQuery());
 }
 #endif /* HKU_SUPPORT_SERIALIZATION */
 
