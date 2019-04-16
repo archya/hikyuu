@@ -25,6 +25,8 @@ Indicator (*indicator_gt1)(const Indicator&, const Indicator&) = operator>;
 Indicator (*indicator_lt1)(const Indicator&, const Indicator&) = operator<;
 Indicator (*indicator_ge1)(const Indicator&, const Indicator&) = operator>=;
 Indicator (*indicator_le1)(const Indicator&, const Indicator&) = operator<=;
+Indicator (*indicator_and1)(const Indicator&, const Indicator&) = operator&;
+Indicator (*indicator_or1)(const Indicator&, const Indicator&) = operator|;
 
 Indicator (*indicator_add2)(const Indicator&, price_t) = operator+;
 Indicator (*indicator_sub2)(const Indicator&, price_t) = operator-;
@@ -36,10 +38,15 @@ Indicator (*indicator_gt2)(const Indicator&, price_t) = operator>;
 Indicator (*indicator_lt2)(const Indicator&, price_t) = operator<;
 Indicator (*indicator_ge2)(const Indicator&, price_t) = operator>=;
 Indicator (*indicator_le2)(const Indicator&, price_t) = operator<=;
+Indicator (*indicator_and2)(const Indicator&, price_t) = operator&;
+Indicator (*indicator_or2)(const Indicator&, price_t) = operator|;
 
 
 string (Indicator::*ind_read_name)() const = &Indicator::name;
 void (Indicator::*ind_write_name)(const string&) = &Indicator::name;
+
+void (Indicator::*setContext_1)(const Stock&, const KQuery&) = &Indicator::setContext;
+void (Indicator::*setContext_2)(const KData&) = &Indicator::setContext;
 
 void export_Indicator() {
 
@@ -53,11 +60,17 @@ void export_Indicator() {
         .def("getParam", &Indicator::getParam<boost::any>)
         .def("setParam", &Indicator::setParam<object>)
         .def("size", &Indicator::size)
-        .def("empty", & Indicator::empty)
+        .def("empty", &Indicator::empty)
+        .def("clone", &Indicator::clone)
+        .def("formula", &Indicator::formula)
         .def("getResultNumber", &Indicator::getResultNumber)
         .def("get", &Indicator::get, get_overloads())
         .def("getResult", &Indicator::getResult)
         .def("getResultAsPriceList", &Indicator::getResultAsPriceList)
+        .def("setContext", setContext_1)
+        .def("setContext", setContext_2)
+        .def("getContext", &Indicator::getContext)
+        .def("getImp", &Indicator::getImp)
         .def("__len__", &Indicator::size)
         .def("__call__", &Indicator::operator())
 #if HKU_PYTHON_SUPPORT_PICKLE
@@ -75,6 +88,8 @@ void export_Indicator() {
     def("indicator_lt", indicator_lt1);
     def("indicator_ge", indicator_ge1);
     def("indicator_le", indicator_le1);
+    def("indicator_and", indicator_and1);
+    def("indicator_or", indicator_or1);
 
     def("indicator_add", indicator_add2);
     def("indicator_sub", indicator_sub2);
@@ -86,4 +101,6 @@ void export_Indicator() {
     def("indicator_lt", indicator_lt2);
     def("indicator_ge", indicator_ge2);
     def("indicator_le", indicator_le2);
+    def("indicator_and", indicator_and2);
+    def("indicator_or", indicator_or2);
 }

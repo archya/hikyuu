@@ -4,6 +4,15 @@
 内建技术指标
 ============
 
+
+.. py:function:: ABS([data])
+
+    求绝对值
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+
+
 .. py:function:: AMA([data, n=10, fast_n=2, slow_n=30])
 
     佩里.J 考夫曼（Perry J.Kaufman）自适应移动平均 [BOOK1]_
@@ -25,6 +34,20 @@
     :param data: 输入数据（KData 或 Indicator）
     :rtype: Indicator
 
+
+.. py:function:: BETWEEN(a, b, c)
+
+    介于(介于两个数之间)
+
+    用法：BETWEEN(A,B,C)表示A处于B和C之间时返回1，否则返回0
+
+    例如：BETWEEN(CLOSE,MA(CLOSE,10),MA(CLOSE,5))表示收盘价介于5日均线和10日均线之间
+
+    :param Indicator a: A
+    :param Indicator b: B
+    :param Indicator c: C
+    :rtype: Indicator
+
     
 .. py:function:: CLOSE([data])
    
@@ -40,21 +63,44 @@
    
    :param KData kdata: k线数据
    :rtype: Indicator
+   
 
-    
-.. py:function:: CVAL([data, value=0.0, len=0, discard=0])
+.. py:function:: CEIL([data])
 
-    CVAL(data[, value=0.0])
+    同  :py:func:`CEILING`
+
+   
+.. py:function:: CEILING([data])
+
+    向上舍入(向数值增大方向舍入)取整
+   
+    用法：CEILING(A)返回沿A数值增大方向最接近的整数
+   
+    例如：CEILING(12.3)求得13；CEILING(-3.5)求得-3
+   
+    :param data: 输入数据
+    :rtype: Indicator
+   
     
-        data 为 Indicator 实例，创建和 data 等长的常量指标，其值和为value，抛弃长度discard和data一样
+.. py:function:: COUNT([data, n=20])
+
+    统计满足条件的周期数。
     
-    CVAL([value=0.0, len=0, discard=0])
+    用法：COUNT(X,N),统计N周期中满足X条件的周期数,若N=0则从第一个有效值开始。
     
-        按指定的长度、抛弃数量创建常量指标
+    例如：COUNT(CLOSE>OPEN,20)表示统计20周期内收阳的周期数
+    
+    :param Indicator data: 条件
+    :param int n: 周期
+    :rtype: Indicator
+    
+    
+.. py:function:: CVAL([data, value=0.0, discard=0])
+
+    data 为 Indicator 实例，创建和 data 等长的常量指标，其值和为value，抛弃长度discard和data一样
     
     :param Indicator data: Indicator实例
     :param float value: 常数值
-    :param int len: 长度
     :param int discard: 抛弃数量
     :rtype: Indicator
     
@@ -75,15 +121,47 @@
     :param int n: 计算均值的周期窗口，必须为大于0的整数 
     :rtype: Indicator
     
+
+.. py:function:: EXP([data])
+
+    EXP(X)为e的X次幂
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+
+
+.. py:function:: FLOOR([data])
+
+    向下舍入(向数值减小方向舍入)取整
     
+    用法：FLOOR(A)返回沿A数值减小方向最接近的整数
+    
+    例如：FLOOR(12.3)求得12
+
+    :param data: 输入数据
+    :rtype: Indicator
+
+
 .. py:function:: HHV([data, n=20])
 
-    N日内最高价
+    N日内最高价，N=0则从第一个有效值开始。
 
     :param Indicator data: 输入数据
     :param int n: N日时间窗口
     :rtype: Indicator
     
+
+.. py:function:: HHVBARS([data, n=20])
+
+    上一高点位置 求上一高点到当前的周期数。
+
+    用法：HHVBARS(X,N):求N周期内X最高值到当前周期数N=0表示从第一个有效值开始统计
+
+    例如：HHVBARS(HIGH,0)求得历史新高到到当前的周期数
+
+    :param Indicator data: 输入数据
+    :param int n: N日时间窗口
+    :rtype: Indicator
     
 .. py:function:: HIGH([data])
 
@@ -98,6 +176,20 @@
     获取换手率，等于 VOL(k) / CAPITAL(k)
     
     :param KData kdata: k线数据
+    :rtype: Indicator
+    
+    
+.. py:function:: IF(x, a, b)
+
+    条件函数, 根据条件求不同的值。
+    
+    用法：IF(X,A,B)若X不为0则返回A,否则返回B
+    
+    例如：IF(CLOSE>OPEN,HIGH,LOW)表示该周期收阳则返回最高值,否则返回最低值
+    
+    :param Indicator x: 条件指标
+    :param Indicator a: 待选指标 a
+    :param Indicator b: 待选指标 b
     :rtype: Indicator
     
     
@@ -128,10 +220,39 @@
     
 .. py:function:: LLV([data, n=20])
 
-    N日内最低价
+    N日内最低价，N=0则从第一个有效值开始。
 
     :param data: 输入数据
     :param int n: N日时间窗口
+    :rtype: Indicator
+
+
+.. py:function:: LLVBARS([data, n=20])
+
+    上一低点位置 求上一低点到当前的周期数。
+    
+    用法：LLVBARS(X,N):求N周期内X最低值到当前周期数N=0表示从第一个有效值开始统计
+    
+    例如：LLVBARS(HIGH,20)求得20日最低点到当前的周期数
+    
+    :param data: 输入数据
+    :param int n: N日时间窗口
+    :rtype: Indicator
+
+
+.. py:function:: LN([data])
+
+    求自然对数, LN(X)以e为底的对数
+
+    :param data: 输入数据
+    :rtype: Indicator
+
+
+.. py:function:: LOG([data])
+
+    以10为底的对数
+
+    :param data: 输入数据
     :rtype: Indicator
 
     
@@ -166,6 +287,32 @@
     * result(0): MACD_BAR：MACD直柱，即MACD快线－MACD慢线
     * result(1): DIFF: 快线,即（短期EMA-长期EMA）
     * result(2): DEA: 慢线，即快线的n3周期EMA平滑
+
+
+.. py:function:: MAX(ind1, ind2)
+
+    求最大值, MAX(A,B)返回A和B中的较大值。
+    
+    :param Indicator ind1: A
+    :param Indicator ind2: B
+    :rtype: Indicator
+
+
+.. py:function:: MIN(ind1, ind2)
+
+    求最小值, MIN(A,B)返回A和B中的较小值。
+    
+    :param Indicator ind1: A
+    :param Indicator ind2: B
+    :rtype: Indicator
+    
+    
+.. py:function:: NOT([data])
+
+    求逻辑非。NOT(X)返回非X,即当X=0时返回1，否则返回0。
+    
+    :param Indicator data: 输入数据
+    :rtype: Indicator
     
     
 .. py:function:: OPEN([data])
@@ -173,6 +320,19 @@
     获取开盘价，包装KData的开盘价成Indicator
     
     :param data: 输入数据（KData 或 Indicator） 
+    :rtype: Indicator
+
+
+.. py:function:: POW(data, n)
+
+    乘幂
+    
+    用法：POW(A,B)返回A的B次幂
+    
+    例如：POW(CLOSE,3)求得收盘价的3次方
+    
+    :param data: 输入数据
+    :param int n: 幂
     :rtype: Indicator
 
 
@@ -197,6 +357,33 @@
     :rtype: Indicator
    
 
+.. py:function:: ROUND([data, ndigits=2])
+
+    四舍五入
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+
+
+.. py:function:: ROUNDDOWN([data, ndigits=2])
+
+    向下截取，如10.1截取后为10
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+
+
+.. py:function:: ROUNDUP([data, ndigits=2])
+
+    向上截取，如10.1截取后为11
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+
+
 .. py:function:: SAFTYLOSS([data, n1=10, n2=3, p=2.0])
 
     亚历山大 艾尔德安全地带止损线，参见 [BOOK2]_
@@ -209,13 +396,33 @@
     :param float p: 噪音系数
     :rtype: Indicator
     
-    
+
+.. py:function:: SGN([data])
+
+    求符号值, SGN(X)，当 X>0, X=0, X<0分别返回 1, 0, -1。
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+
+
 .. py:function:: SMA([data, n=22])
 
     简单移动平均线
     
     :param Indicator data: 输入数据
     :param int n: 时间窗口
+    :rtype: Indicator
+
+
+.. py:function:: SQRT([data])
+
+    开平方
+
+    用法：SQRT(X)为X的平方根
+
+    例如：SQRT(CLOSE)收盘价的平方根
+
+    :param data: 输入数据
     :rtype: Indicator
 
     
@@ -228,13 +435,22 @@
     :rtype: Indicator
     
 
-.. py:function:: VIGOR(data[, n=2])
+.. py:function:: SUM([data, n=20])
+
+    求总和。SUM(X,N),统计N周期中X的总和,N=0则从第一个有效值开始。
+
+    :param Indicator data: 输入数据
+    :param int n: 时间窗口
+    :rtype: Indicator
+
+
+.. py:function:: VIGOR([kdata, n=2])
 
     亚历山大.艾尔德力度指数 [BOOK2]_
     
     计算公式：（收盘价今－收盘价昨）＊成交量今
     
-    :param data: 输入数据（KData 或 具有6个结果集的Indicator）
+    :param KData data: 输入数据
     :param int n: EMA平滑窗口
     :rtype: Indicator
    
@@ -246,4 +462,12 @@
     :param data: 输入数据（KData 或 Indicator）
     :rtype: Indicator
 
+
+.. py:function:: WEAVE(ind1, ind2)
+
+    将ind1和ind2的结果组合在一起放在一个Indicator中。如ind = WEAVE(ind1, ind2), 则此时ind包含多个结果，按ind1、ind2的顺序存放。
+    
+    :param Indicator ind1: 指标1
+    :param Indicator ind2: 指标2
+    :rtype: Indicator
 

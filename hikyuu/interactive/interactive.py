@@ -117,9 +117,10 @@ kdata_config = ini.options('kdata')
 for p in kdata_config:
     kdata_param.set(p, ini.get('kdata', p))
 
-set_log_level(LOG_LEVEL.INFO)
+set_log_level(LOG_LEVEL.TRACE)
 sm = StockManager.instance()
 sm.init(base_param, block_param, kdata_param, preload_param, hku_param)
+set_log_level(LOG_LEVEL.WARN)
 
 
 #==============================================================================
@@ -162,7 +163,46 @@ zsbk_sz50 = sm.getBlock("指数板块", "上证50")
 zsbk_sz180 = sm.getBlock("指数板块", "上证180")
 zsbk_hs300 = sm.getBlock("指数板块", "沪深300")
 zsbk_zz100 = sm.getBlock("指数板块", "沪深300")
-        
+
+
+#==============================================================================
+#
+# 设置关键类型简称
+#
+#==============================================================================            
+O = OPEN()
+C = CLOSE()
+H = HIGH()
+L = LOW()
+A = AMO()
+V = VOL()
+D = Datetime
+
+def set_global_context(stk, query):
+    """设置全局的 context
+
+        :param Stock stk: 指定的全局Stock
+        :param Query query: 指定的查询条件
+    """
+    k = stk.getKData(query)
+    O.setContext(k)
+    C.setContext(k)
+    H.setContext(k)
+    L.setContext(k)
+    A.setContext(k)
+    V.setContext(k)
+
+
+def get_global_context():
+    """获取当前的全局上下文
+    
+        :rtype: KData
+    """
+    return C.getContext()    
+
+set_global_context(sm['sh000001'], Query(-150))
+
+
 #==============================================================================
 #
 # 设置默认绘图引擎
@@ -170,6 +210,46 @@ zsbk_zz100 = sm.getBlock("指数板块", "沪深300")
 #==============================================================================            
 
 use_draw_engine('matplotlib')
+
+
+#==============================================================================
+#
+# 粗略的选股函数
+#
+#==============================================================================            
+
+def select(cond, start=Datetime(201801010000), end=Datetime.now(), print_out=True):
+    """
+    示例：
+    #选出涨停股
+    C = CLOSE()
+    x = select(C / REF(C, 1) - 1 >= 0.0995))
+
+    :param Indicator cond: 条件指标
+    :param Datetime start: 起始日期
+    :param Datetime end: 结束日期
+    :param bool print_out: 打印选中的股票
+    :rtype: 选中的股票列表
+    """
+    q = QueryByDate(start, end)
+    d = sm.getTradingCalendar(q, 'SH')
+    if len(d) == 0:
+        return
+
+    result = []
+    for s in blocka:
+        if not s.valid:
+            continue
+        
+        q = QueryByDate(start, end)
+        k = s.getKData(q)
+        cond.setContext(k)
+        if len(cond) > 0 and cond[-1] and len(k) > 0 and k[-1].datetime == d[-1]:
+            result.append(s)
+            if print_out:
+                print(d[-1], s)
+                
+    return result
 
 
 #==============================================================================

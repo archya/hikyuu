@@ -7,6 +7,11 @@
 
 #include "SaftyLoss.h"
 
+#if HKU_SUPPORT_SERIALIZATION
+BOOST_CLASS_EXPORT(hku::SaftyLoss)
+#endif
+
+
 namespace hku {
 
 SaftyLoss::SaftyLoss():IndicatorImp("SAFTYLOSS", 1) {
@@ -39,6 +44,9 @@ bool SaftyLoss::check() {
 
 void SaftyLoss::_calculate(const Indicator& data) {
     size_t total = data.size();
+    if (total == 0) {
+        return;
+    }
     _readyBuffer(total, 1);
 
     int n1 = getParam<int>("n1");
@@ -46,7 +54,8 @@ void SaftyLoss::_calculate(const Indicator& data) {
     double p = getParam<double>("p");
 
     m_discard = data.discard() + n1 + n2 - 2;
-    if (0 == total) {
+    if (m_discard >= total) {
+        m_discard = total;
         return;
     }
 
@@ -94,12 +103,7 @@ Indicator HKU_API SAFTYLOSS(int n1, int n2, double p) {
 
 
 Indicator HKU_API SAFTYLOSS(const Indicator& data, int n1, int n2, double p) {
-    IndicatorImpPtr result = make_shared<SaftyLoss>();
-    result->setParam<int>("n1", n1);
-    result->setParam<int>("n2", n2);
-    result->setParam<double>("p", p);
-    result->calculate(data);
-    return Indicator(result);
+    return SAFTYLOSS(n1, n2, p)(data);
 }
 
 } /* namespace hku */

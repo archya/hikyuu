@@ -7,6 +7,11 @@
 
 #include "Sma.h"
 
+#if HKU_SUPPORT_SERIALIZATION
+BOOST_CLASS_EXPORT(hku::Sma)
+#endif
+
+
 namespace hku {
 
 Sma::Sma(): IndicatorImp("SMA", 1) {
@@ -20,7 +25,7 @@ Sma::~Sma() {
 bool Sma::check() {
     int n = getParam<int>("n");
     if (n < 1) {
-        HKU_ERROR("Invalid param! (n >= 1) [Ma::Ma]");
+        HKU_ERROR("Invalid param! (n >= 1) [Sma::check]");
         return false;
     }
 
@@ -29,9 +34,13 @@ bool Sma::check() {
 
 void Sma::_calculate(const Indicator& indicator) {
     size_t total = indicator.size();
-    int n = getParam<int>("n");
-
     m_discard = indicator.discard();
+    if (m_discard >= total) {
+        m_discard = total;
+        return;
+    }
+
+    int n = getParam<int>("n");
     size_t startPos = m_discard;
     price_t sum = 0.0;
     size_t count = 1;
@@ -54,11 +63,8 @@ Indicator HKU_API SMA(int n) {
     return Indicator(p);
 }
 
-Indicator HKU_API SMA(const Indicator& indicator, int n){
-    IndicatorImpPtr p = make_shared<Sma>();
-    p->setParam<int>("n", n);
-    p->calculate(indicator);
-    return Indicator(p);
+Indicator HKU_API SMA(const Indicator& ind, int n){
+    return SMA(n)(ind);
 }
 
 } /* namespace hku */

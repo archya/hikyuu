@@ -11,7 +11,7 @@
 #include <hikyuu_utils/iniparser/IniParser.h>
 
 #include "utilities/Parameter.h"
-#include "data_driver/BlockInfoDriver.h"
+#include "data_driver/DataDriverFactory.h"
 #include "Block.h"
 #include "MarketInfo.h"
 #include "StockTypeInfo.h"
@@ -53,6 +53,8 @@ public:
     Parameter getPreloadParameter() const;
     Parameter getHikyuuParameter() const;
 
+    BaseInfoDriverPtr getBaseInfoDriver() const;
+
     void setKDataDriver(const KDataDriverPtr&);
 
     /**
@@ -60,6 +62,9 @@ public:
      * 由m_config中的“tmpdir”指定
      */
     string tmpdir() const;
+
+    /** 获取数据目录 */
+    string datadir() const;
 
     /** 获取证券数量 */
     size_t size() const;
@@ -176,6 +181,7 @@ private:
 private:
     static shared_ptr<StockManager> m_sm;
     string m_tmpdir;
+    string m_datadir;
     BlockInfoDriverPtr m_blockDriver;
 
     StockMapIterator::stock_map_t m_stockDict;  // SH000001 -> stock
@@ -197,7 +203,6 @@ private:
 inline size_t StockManager::size() const {
     return m_stockDict.size();
 }
-
 
 inline Stock StockManager::operator[](const string& query) const {
     return getStock(query);
@@ -221,6 +226,10 @@ inline Parameter StockManager::getPreloadParameter() const {
 
 inline Parameter StockManager::getHikyuuParameter() const {
     return m_hikyuuParam;
+}
+
+inline BaseInfoDriverPtr StockManager::getBaseInfoDriver() const {
+    return DataDriverFactory::getBaseInfoDriver(m_baseInfoDriverParam);
 }
 
 } /* namespace */

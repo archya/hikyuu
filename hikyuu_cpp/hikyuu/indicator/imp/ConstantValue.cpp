@@ -7,24 +7,22 @@
 
 #include "ConstantValue.h"
 
+#if HKU_SUPPORT_SERIALIZATION
+BOOST_CLASS_EXPORT(hku::ConstantValue)
+#endif
+
+
 namespace hku {
 
 ConstantValue::ConstantValue() : IndicatorImp("CVAL", 1) {
     setParam<double>("value", 0.0);
+    setParam<int>("discard", 0);
 }
 
-ConstantValue::ConstantValue(double value, size_t len, size_t discard)
+ConstantValue::ConstantValue(double value, size_t discard)
 :IndicatorImp("CVAL", 1) {
-    m_discard = discard > len ? len : discard;
     setParam<double>("value", value);
-
-    if (len == 0)
-        return;
-
-    _readyBuffer(len, m_result_num);
-    for (size_t i = m_discard; i < len; ++i) {
-        _set(value, i);
-    }
+    setParam<int>("discard", discard);
 }
 
 ConstantValue::~ConstantValue() {
@@ -32,30 +30,57 @@ ConstantValue::~ConstantValue() {
 }
 
 bool ConstantValue::check() {
-    return true;
+    return getParam<int>("discard") < 0 ? false : true;
 }
 
 void ConstantValue::_calculate(const Indicator& data) {
-    size_t total = data.size();
-
     double value = getParam<double>("value");
-    m_discard = data.discard();
+    int discard = getParam<int>("discard");
+
+    size_t total = 0;
+    if (isLeaf()) {
+        //叶子节点
+        KData k = getContext();
+        if (k.getStock().isNull()) {
+            _readyBuffer(1, 1);
+            if (discard < 1) {
+                m_discard = 0;
+                _set(value, 0, 0);
+            } else {
+                m_discard = 1;
+            }
+            return;
+        }
+
+        total = k.size();
+        if (0 == total) {
+            return;
+        }
+
+        _readyBuffer(total, 1);
+    
+    } else {
+        //非叶子节点
+        total = data.size();
+        discard = data.discard() > discard ? data.discard() : discard;
+    }
+
+    m_discard = discard > total ? total : discard;
 
     for (size_t i = m_discard; i < total; ++i) {
         _set(value, i, 0);
     }
 }
 
-Indicator HKU_API CVAL(double value, size_t len, size_t discard) {
-    IndicatorImpPtr p = make_shared<ConstantValue>(value, len, discard);
-    return Indicator(p);
+Indicator HKU_API CVAL(double value, size_t discard) {
+    return make_shared<ConstantValue>(value, discard)->calculate();
 }
 
-Indicator HKU_API CVAL(const Indicator& ind, double value) {
+Indicator HKU_API CVAL(const Indicator& ind, double value, int discard) {
     IndicatorImpPtr p = make_shared<ConstantValue>();
     p->setParam<double>("value", value);
-    p->calculate(ind);
-    return Indicator(p);
+    p->setParam<int>("discard", discard);
+    return Indicator(p)(ind);
 }
 
 } /* namespace hku */

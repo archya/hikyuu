@@ -8,6 +8,11 @@
 #include "Macd.h"
 #include "../crt/EMA.h"
 
+#if HKU_SUPPORT_SERIALIZATION
+BOOST_CLASS_EXPORT(hku::Macd)
+#endif
+
+
 namespace hku {
 
 Macd::Macd(): IndicatorImp("MACD", 3) {
@@ -32,6 +37,10 @@ bool Macd::check() {
 
 void Macd::_calculate(const Indicator& data) {
     size_t total = data.size();
+    if (total == 0) {
+        return;
+    }
+    
     _readyBuffer(total, 3);
 
     int n1 = getParam<int>("n1");
@@ -40,6 +49,7 @@ void Macd::_calculate(const Indicator& data) {
 
     m_discard = data.discard();
     if (total <= m_discard) {
+        m_discard = total;
         return;
     }
 
@@ -77,12 +87,7 @@ Indicator HKU_API MACD(int n1, int n2, int n3) {
 }
 
 Indicator HKU_API MACD(const Indicator& data, int n1, int n2, int n3) {
-    IndicatorImpPtr p = make_shared<Macd>();
-    p->setParam<int>("n1", n1);
-    p->setParam<int>("n2", n2);
-    p->setParam<int>("n3", n3);
-    p->calculate(data);
-    return Indicator(p);
+    return MACD(n1, n2, n3)(data);
 }
 
 } /* namespace hku */

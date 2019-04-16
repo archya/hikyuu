@@ -12,6 +12,8 @@
 
 namespace hku {
 
+class HKU_API Indicator;
+
 /**
  * K线数据
  * @ingroup StockManage
@@ -66,6 +68,25 @@ public:
     void tocsv(const string& filename);
 
     string toString() const;
+
+    /** 开盘价 */
+    Indicator open() const;
+    
+    /** 最高价 */
+    Indicator high() const;
+    
+    /** 收盘价 */
+    Indicator close() const;
+    
+    /** 最低价 */
+    Indicator low() const;
+    
+    /** 成交量 */
+    Indicator vol() const;
+    
+    /** 成交金额 */
+    Indicator amo() const;
+
 
 private:
     KDataImpPtr m_imp;

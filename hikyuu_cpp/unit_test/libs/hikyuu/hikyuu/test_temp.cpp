@@ -6,6 +6,7 @@
 #endif
 
 #include <hikyuu/StockManager.h>
+#include <hikyuu/data_driver/HistoryFinanceReader.h>
 
 using namespace hku;
 

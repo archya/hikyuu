@@ -27,6 +27,16 @@
 from .indicator import *
 
 
+ABS.__doc__ = """
+ABS([data])
+
+    求绝对值
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+"""
+
+
 AMA.__doc__ = """
 AMA([data, n=10, fast_n=2, slow_n=30])
 
@@ -63,14 +73,25 @@ CLOSE([data])
 """
 
 
+COUNT.__doc__ = """
+COUNT([data, n=20])
+
+    统计满足条件的周期数。
+    
+    用法：COUNT(X,N),统计N周期中满足X条件的周期数,若N=0则从第一个有效值开始。
+    
+    例如：COUNT(CLOSE>OPEN,20)表示统计20周期内收阳的周期数
+    
+    :param Indicator data: 条件
+    :param int n: 周期
+    :rtype: Indicator
+"""
+
+
 CVAL.__doc__ = """
-    CVAL(data[, value=0.0])
+CVAL([data, value=0.0, discard=0])
     
-        data 为 Indicator 实例，创建和 data 等长的常量指标，其值和为value，抛弃长度discard和data一样
-    
-    CVAL([value=0.0, len=0, discard=0])
-    
-        按指定的长度、抛弃数量创建常量指标
+    data 为 Indicator 实例，创建和 data 等长的常量指标，其值和为value，抛弃长度discard和data一样
     
     :param Indicator data: Indicator实例
     :param float value: 常数值
@@ -101,14 +122,39 @@ EMA([data, n=22])
 """
 
 
+EXP.__doc__ = """
+EXP([data])
+
+    EXP(X)为e的X次幂
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+"""
+
+
 HHV.__doc__ = """
 HHV([data, n=20])
 
-    N日内最高价
+    N日内最高价, N=0则从第一个有效值开始。
 
     :param Indicator data: 输入数据
     :param int n: N日时间窗口
     :return: Indicator
+"""
+
+
+HHVBARS.__doc__ = """
+HHVBARS([data, n=20])
+
+    上一高点位置 求上一高点到当前的周期数。
+
+    用法：HHVBARS(X,N):求N周期内X最高值到当前周期数N=0表示从第一个有效值开始统计
+
+    例如：HHVBARS(HIGH,0)求得历史新高到到当前的周期数
+
+    :param Indicator data: 输入数据
+    :param int n: N日时间窗口
+    :rtype: Indicator
 """
 
 
@@ -128,6 +174,22 @@ HSL(kdata)
     获取换手率，等于 VOL(k) / CAPITAL(k)
     
     :param KData kdata: k线数据
+    :rtype: Indicator
+"""
+
+
+IF.__doc__ = """
+IF(x, a, b)
+
+    条件函数, 根据条件求不同的值。
+    
+    用法：IF(X,A,B)若X不为0则返回A,否则返回B
+    
+    例如：IF(CLOSE>OPEN,HIGH,LOW)表示该周期收阳则返回最高值,否则返回最低值
+    
+    :param Indicator x: 条件指标
+    :param Indicator a: 待选指标 a
+    :param Indicator b: 待选指标 b
     :rtype: Indicator
 """
 
@@ -167,11 +229,30 @@ LIUTONGPAN(kdata)
 LLV.__doc__ = """
 LLV([data, n=20])
 
-    N日内最低价
+    N日内最低价, N=0则从第一个有效值开始。
 
     :param data: 输入数据
     :param int n: N日时间窗口
     :return: Indicator
+"""
+
+
+LN.__doc__ = """
+LN([data])
+
+    求自然对数, LN(X)以e为底的对数
+
+    :param data: 输入数据
+    :rtype: Indicator
+"""
+
+LOG.__doc__ = """
+LOG([data])
+
+    以10为底的对数
+
+    :param data: 输入数据
+    :rtype: Indicator
 """
 
 
@@ -214,6 +295,38 @@ MACD([data, n1=12, n2=26, n3=9])
 """
 
 
+MAX.__doc__ = """
+MAX(ind1, ind2)
+
+    求最大值, MAX(A,B)返回A和B中的较大值。
+    
+    :param Indicator ind1: A
+    :param Indicator ind2: B
+    :rtype: Indicator
+"""
+
+
+MIN.__doc__ = """
+MIN(ind1, ind2)
+
+    求最小值, MIN(A,B)返回A和B中的较小值。
+    
+    :param Indicator ind1: A
+    :param Indicator ind2: B
+    :rtype: Indicator
+"""
+
+
+NOT.__doc__ = """
+NOT([data])
+
+    求逻辑非。NOT(X)返回非X,即当X=0时返回1，否则返回0。
+    
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+"""
+
+
 OPEN.__doc__ = """
 OPEN([data])
 
@@ -221,6 +334,21 @@ OPEN([data])
     
     :param data: 输入数据（KData 或 Indicator） 
     :return: Indicator
+"""
+
+
+POW.__doc__ = """
+POW(data, n)
+
+    乘幂
+    
+    用法：POW(A,B)返回A的B次幂
+    
+    例如：POW(CLOSE,3)求得收盘价的3次方
+    
+    :param data: 输入数据
+    :param int n: 幂
+    :rtype: Indicator
 """
 
 
@@ -233,7 +361,41 @@ REF([data, n])
     :param Indicator data: 输入数据
     :param int n: 引用n周期前的值，即右移n位
     :return: Indicator
-"""    
+"""
+
+
+ROUND.__doc__ = """
+ROUND([data, ndigits=2])
+
+    四舍五入
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+"""
+
+
+ROUNDDOWN.__doc__ = """
+ROUNDDOWN([data, ndigits=2])
+
+    向下截取，如10.1截取后为10
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+"""
+
+
+ROUNDUP.__doc__ = """
+ROUNDUP([data, ndigits=2])
+
+    向上截取，如10.1截取后为11
+
+    :param data: 输入数据
+    :param int ndigits: 保留的小数点后位数
+    :rtype: Indicator
+"""
+
 
 SAFTYLOSS.__doc__ = """
 SAFTYLOSS([data, n1=10, n2=3, p=2.0])
@@ -250,6 +412,16 @@ SAFTYLOSS([data, n1=10, n2=3, p=2.0])
 """
 
 
+SGN.__doc__ = """
+SGN([data])
+
+    求符号值, SGN(X)，当 X>0, X=0, X<0分别返回 1, 0, -1。
+
+    :param Indicator data: 输入数据
+    :rtype: Indicator
+"""
+
+
 SMA.__doc__ = """
 SMA([data, n=22])
 
@@ -258,6 +430,20 @@ SMA([data, n=22])
     :param Indicator data: 输入数据
     :param int n: 时间窗口
     :return: Indicator
+"""
+
+
+SQRT.__doc__ = """
+SQRT([data])
+
+    开平方
+
+    用法：SQRT(X)为X的平方根
+
+    例如：SQRT(CLOSE)收盘价的平方根
+
+    :param data: 输入数据
+    :rtype: Indicator
 """
 
 
@@ -272,14 +458,25 @@ STDEV([data, n=10])
 """
 
 
+SUM.__doc__ = """
+SUM([data, n=20])
+
+    求总和。SUM(X,N),统计N周期中X的总和,N=0则从第一个有效值开始。
+
+    :param Indicator data: 输入数据
+    :param int n: 时间窗口
+    :rtype: Indicator
+"""
+
+
 VIGOR.__doc__ = """
-VIGOR(data[, n=2])
+VIGOR([kdata, n=2])
 
     亚历山大.艾尔德力度指数 [BOOK2]_
     
     计算公式：（收盘价今－收盘价昨）＊成交量今
     
-    :param data: 输入数据（KData 或 具有6个结果集的Indicator）
+    :param KData data: 输入数据
     :param int n: EMA平滑窗口
     :return: Indicator
 """
@@ -294,4 +491,13 @@ VOL([data])
     :return: Indicator
 """
     
+
+WEAVE.__doc__ = """
+WEAVE(ind1, ind2)
+
+    将ind1和ind2的结果组合在一起放在一个Indicator中。如ind = WEAVE(ind1, ind2), 则此时ind包含多个结果，按ind1、ind2的顺序存放。
     
+    :param Indicator ind1: 指标1
+    :param Indicator ind2: 指标2
+    :rtype: Indicator
+"""

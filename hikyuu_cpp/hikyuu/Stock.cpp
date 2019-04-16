@@ -7,6 +7,7 @@
 
 #include "StockManager.h"
 #include "data_driver/KDataDriver.h"
+#include "data_driver/HistoryFinanceReader.h"
 #include "utilities/util.h"
 #include "KData.h"
 
@@ -16,7 +17,7 @@ namespace hku {
 static KDataDriverPtr g_kdataDefaultDriver(new KDataDriver);
 
 const string Stock::default_market;
-const string Stock::default_code ;
+const string Stock::default_code;
 const string Stock::default_market_code;
 const string Stock::default_name;
 const hku_uint32 Stock::default_type = Null<hku_uint32>();
@@ -347,7 +348,7 @@ StockWeightList Stock::getWeight(const Datetime& start,
     end_iter = lower_bound(start_iter,
                   (StockWeightList::const_iterator)m_data->m_weightList.end(),
                    end, std::less<StockWeight>());
-    for(; start_iter != end_iter; start_iter++) {
+    for(; start_iter != end_iter; ++start_iter) {
         result.push_back(*start_iter);
     }
 
@@ -652,6 +653,32 @@ TimeLineList Stock::getTimeLineList(const KQuery& query) const {
 TransList Stock::getTransList(const KQuery& query) const {
     return isNull() ? TransList()
                     :m_kdataDriver->getTransList(market(), code(), query);
+}
+
+
+Parameter Stock::getFinanceInfo() const {
+    Parameter result;
+    if (type() != STOCKTYPE_A) {
+        return result;
+    }
+
+    BaseInfoDriverPtr driver = StockManager::instance().getBaseInfoDriver();
+    if (driver) {
+        result = driver->getFinanceInfo(market(), code());
+    }
+    
+    return result;
+}
+
+
+PriceList Stock::getHistoryFinanceInfo(const Datetime& date) const {
+    if (type() == STOCKTYPE_A) {
+        StockManager& sm = StockManager::instance();
+        HistoryFinanceReader rd(sm.datadir() + "/downloads/finance");
+        return rd.getHistoryFinanceInfo(date, market(), code());
+    }
+
+    return PriceList();
 }
 
 

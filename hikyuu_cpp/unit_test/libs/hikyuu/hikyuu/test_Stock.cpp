@@ -1928,4 +1928,75 @@ BOOST_AUTO_TEST_CASE( test_Stock_id_map ) {
     MEMORY_CHECK;
 }
 
+
+/** @par 检测点 */
+BOOST_AUTO_TEST_CASE( test_Stock_getHistoryFinanceInfo ) {
+    StockManager& sm = StockManager::instance();
+    Stock stk = getStock("sh600000");
+    PriceList result = stk.getHistoryFinanceInfo(Datetime(201109300000));
+    BOOST_CHECK(result.size() == 286);
+    BOOST_CHECK_CLOSE(result[0], 1.067, 0.00001);
+    BOOST_CHECK_CLOSE(result[1], 1.061, 0.00001);
+    BOOST_CHECK_CLOSE(result[2], 1.360, 0.00001);
+    BOOST_CHECK_CLOSE(result[3], 7.482, 0.00001);
+    BOOST_CHECK_CLOSE(result[9], 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(result[14], 7.87818e+09, 0.00001);
+    BOOST_CHECK_CLOSE(result[282], 6.327156e+06, 0.00001);
+    BOOST_CHECK_CLOSE(result[285], 0.0, 0.00001);
+    //for (int i = 0; i < 286; i++) {
+    //    std::cout << result[i] << std::endl;
+    //}
+
+    MEMORY_CHECK;
+}
+
+
+/** @par 检测点 */
+BOOST_AUTO_TEST_CASE( test_Stock_getFinanceInfo ) {
+    StockManager& sm = StockManager::instance();
+    Stock stk = sm.getStock("sh600000");
+    Parameter f = stk.getFinanceInfo();
+
+    BOOST_CHECK(f.get<string>("market") == "SH");
+    BOOST_CHECK(f.get<string>("code") == "600000");
+    BOOST_CHECK(f.get<int>("updated_date") == 20190326);
+    BOOST_CHECK(f.get<int>("ipo_date") == 19991110);
+    
+    BOOST_CHECK_CLOSE(f.get<price_t>("liutongguben"), 28103765000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("province"), 16, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("industry"), 1, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zongguben"), 29352080000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("guojiagu"), 1801990000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("faqirenfarengu"), 542580000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("farengu"), 1686190080000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("bgu"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("hgu"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zhigonggu"), 18500.00023841858, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zongzichan"), 62896056320000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("liudongzichan"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("gudingzichan"), 264920000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("wuxingzichan"), 99620000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("gudongrenshu"), 190753.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("liudongfuzhai"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("changqifuzhai"), 68180000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zibengongjijin"), 817600000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("jingzichan"), 4715619840000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zhuyingshouru"), 1715420000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zhuyinglirun"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("yingshouzhangkuan"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("yingyelirun"), 653430000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("touzishouyi"), 147650000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("jingyingxianjinliu"), -3383600000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("zongxianjinliu"), 374319920000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("cunhuo"), 0.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("lirunzonghe"), 652840000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("shuihoulirun"), 565150000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("jinglirun"), 559140000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("weifenpeilirun"), 1402080000000.0, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("meigujingzichan"), 15.050000190734863, 0.00001);
+    BOOST_CHECK_CLOSE(f.get<price_t>("baoliu2"), 12.0, 0.00001);
+
+    MEMORY_CHECK;
+}
+
 /** @} */

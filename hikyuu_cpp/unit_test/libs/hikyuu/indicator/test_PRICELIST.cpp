@@ -12,10 +12,10 @@
     #include <boost/test/unit_test.hpp>
 #endif
 
+#include <fstream>
 #include <hikyuu/StockManager.h>
 #include <hikyuu/indicator/crt/PRICELIST.h>
 #include <hikyuu/indicator/crt/KDATA.h>
-#include <hikyuu/indicator/crt/MA.h>
 
 using namespace hku;
 
@@ -88,6 +88,7 @@ BOOST_AUTO_TEST_CASE( test_PRICELIST ) {
     KQuery query(0, 30);
     KData kdata = stock.getKData(query);
     Indicator ikdata = KDATA(kdata);
+    BOOST_CHECK(ikdata.size() == 30);
     result = PRICELIST(ikdata);
     BOOST_CHECK(result.size() == ikdata.size());
     BOOST_CHECK(result.discard() == ikdata.discard());
@@ -103,5 +104,45 @@ BOOST_AUTO_TEST_CASE( test_PRICELIST ) {
         BOOST_CHECK(result[i] == ikdata.get(i, 1));
     }
 }
+
+
+//-----------------------------------------------------------------------------
+// test export
+//-----------------------------------------------------------------------------
+#if HKU_SUPPORT_SERIALIZATION
+
+/** @par 检测点 */
+BOOST_AUTO_TEST_CASE( test_PRICELIST_export ) {
+    StockManager& sm = StockManager::instance();
+    string filename(sm.tmpdir());
+    filename += "/PRICELIST.xml";
+
+    PriceList d;
+    for (size_t i = 0; i < 20; ++i) {
+        d.push_back(i);
+    }
+
+    Indicator ma1 = PRICELIST(d);
+    {
+        std::ofstream ofs(filename);
+        boost::archive::xml_oarchive oa(ofs);
+        oa << BOOST_SERIALIZATION_NVP(ma1);
+    }
+
+    Indicator ma2;
+    {
+        std::ifstream ifs(filename);
+        boost::archive::xml_iarchive ia(ifs);
+        ia >> BOOST_SERIALIZATION_NVP(ma2);
+    }
+
+    BOOST_CHECK(ma1.size() == ma2.size());
+    BOOST_CHECK(ma1.discard() == ma2.discard());
+    BOOST_CHECK(ma1.getResultNumber() == ma2.getResultNumber());
+    for (size_t i = 0; i < ma1.size(); ++i) {
+        BOOST_CHECK_CLOSE(ma1[i], ma2[i], 0.00001);
+    }
+}
+#endif /* #if HKU_SUPPORT_SERIALIZATION */
 
 /** @} */

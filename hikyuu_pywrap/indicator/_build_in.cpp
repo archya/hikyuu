@@ -16,35 +16,27 @@ Indicator (*PRICELIST3)(const Indicator&, int) = PRICELIST;
 Indicator (*PRICELIST4)(int) = PRICELIST;
 
 Indicator (*KDATA1)(const KData&) = KDATA;
-Indicator (*KDATA2)(const Indicator&) = KDATA;
 Indicator (*KDATA3)() = KDATA;
 
 Indicator (*OPEN1)(const KData&) = OPEN;
-Indicator (*OPEN2)(const Indicator&) = OPEN;
 Indicator (*OPEN3)() = OPEN;
 
 Indicator (*HIGH1)(const KData&) = HIGH;
-Indicator (*HIGH2)(const Indicator&) = HIGH;
 Indicator (*HIGH3)() = HIGH;
 
 Indicator (*LOW1)(const KData&) = LOW;
-Indicator (*LOW2)(const Indicator&) = LOW;
 Indicator (*LOW3)() = LOW;
 
 Indicator (*CLOSE1)(const KData&) = CLOSE;
-Indicator (*CLOSE2)(const Indicator&) = CLOSE;
 Indicator (*CLOSE3)() = CLOSE;
 
 Indicator (*AMO1)(const KData&) = AMO;
-Indicator (*AMO2)(const Indicator&) = AMO;
 Indicator (*AMO3)() = AMO;
 
 Indicator (*VOL1)(const KData&) = VOL;
-Indicator (*VOL2)(const Indicator&) = VOL;
 Indicator (*VOL3)() = VOL;
 
 Indicator (*KDATA_PART1)(const KData& kdata, const string& part) = KDATA_PART;
-Indicator (*KDATA_PART2)(const Indicator& kdata, const string& part) = KDATA_PART;
 Indicator (*KDATA_PART3)(const string& part) = KDATA_PART;
 
 Indicator (*AMA_1)(int, int, int) = AMA;
@@ -92,53 +84,125 @@ Indicator (*LLV_2)(const Indicator&, int) = LLV;
 
 Indicator (*VIGOR_1)(const KData&, int) = VIGOR;
 Indicator (*VIGOR_2)(int) = VIGOR;
-Indicator (*VIGOR_3)(const Indicator&, int) = VIGOR;
 
-Indicator (*WEAVE_1)() = WEAVE;
-Indicator (*WEAVE_2)(const Indicator&) = WEAVE;
+Indicator (*CVAL_1)(double, size_t) = CVAL;
+Indicator (*CVAL_2)(const Indicator&, double, int) = CVAL;
 
-Indicator (*CVAL_1)(double, size_t, size_t) = CVAL;
-Indicator (*CVAL_2)(const Indicator&, double) = CVAL;
+Indicator (*LIUTONGPAN_1)() = LIUTONGPAN;
+Indicator (*LIUTONGPAN_2)(const KData&) = LIUTONGPAN;
 
-Indicator (*IND_AND1)(const Indicator&, const Indicator&) = IND_AND;
-Indicator (*IND_AND2)(const Indicator&, price_t) = IND_AND;
-Indicator (*IND_AND3)(price_t, const Indicator&) = IND_AND;
+Indicator (*HSL_1)() = HSL;
+Indicator (*HSL_2)(const KData&) = HSL;
 
-Indicator (*IND_OR1)(const Indicator&, const Indicator&) = IND_OR;
-Indicator (*IND_OR2)(const Indicator&, price_t) = IND_OR;
-Indicator (*IND_OR3)(price_t, const Indicator&) = IND_OR;
+Indicator (*IF_1)(const Indicator&, const Indicator&, const Indicator&) = IF;
+Indicator (*IF_2)(const Indicator&, price_t, const Indicator&) = IF;
+Indicator (*IF_3)(const Indicator&, const Indicator&, price_t) = IF;
+Indicator (*IF_4)(const Indicator&, price_t, price_t) = IF;
+
+Indicator (*COUNT_1)(int) = COUNT;
+Indicator (*COUNT_2)(const Indicator&, int) = COUNT;
+
+Indicator (*SUM_1)(int) = SUM;
+Indicator (*SUM_2)(const Indicator&, int) = SUM;
+
+Indicator (*ABS_1)() = ABS;
+Indicator (*ABS_2)(price_t) = ABS;
+Indicator (*ABS_3)(const Indicator&) = ABS;
+
+Indicator (*NOT_1)() = NOT;
+Indicator (*NOT_2)(const Indicator&) = NOT;
+
+Indicator (*SGN_1)() = SGN;
+Indicator (*SGN_2)(price_t) = SGN;
+Indicator (*SGN_3)(const Indicator&) = SGN;
+
+Indicator (*EXP_1)() = EXP;
+Indicator (*EXP_2)(price_t) = EXP;
+Indicator (*EXP_3)(const Indicator&) = EXP;
+
+Indicator (*MAX_1)(const Indicator&, const Indicator&) = MAX;
+Indicator (*MAX_2)(const Indicator&, price_t) = MAX;
+Indicator (*MAX_3)(price_t, const Indicator&) = MAX;
+
+Indicator (*MIN_1)(const Indicator&, const Indicator&) = MIN;
+Indicator (*MIN_2)(const Indicator&, price_t) = MIN;
+Indicator (*MIN_3)(price_t, const Indicator&) = MIN;
+
+Indicator (*BETWEEN_1)(const Indicator&, const Indicator&, const Indicator&) = BETWEEN;
+Indicator (*BETWEEN_2)(const Indicator&, const Indicator&, price_t) = BETWEEN;
+Indicator (*BETWEEN_3)(const Indicator&, price_t, const Indicator&) = BETWEEN;
+Indicator (*BETWEEN_4)(const Indicator&, price_t, price_t) = BETWEEN;
+Indicator (*BETWEEN_5)(price_t, const Indicator&, const Indicator&) = BETWEEN;
+Indicator (*BETWEEN_6)(price_t, const Indicator&, price_t) = BETWEEN;
+Indicator (*BETWEEN_7)(price_t, price_t, const Indicator&) = BETWEEN;
+Indicator (*BETWEEN_8)(price_t, price_t, price_t) = BETWEEN;
+
+Indicator (*LN_1)() = LN;
+Indicator (*LN_2)(price_t) = LN;
+Indicator (*LN_3)(const Indicator&) = LN;
+
+Indicator (*LOG_1)() = LOG;
+Indicator (*LOG_2)(price_t) = LOG;
+Indicator (*LOG_3)(const Indicator&) = LOG;
+
+Indicator (*HHVBARS_1)(int) = HHVBARS;
+Indicator (*HHVBARS_2)(const Indicator&, int) = HHVBARS;
+
+Indicator (*LLVBARS_1)(int) = LLVBARS;
+Indicator (*LLVBARS_2)(const Indicator&, int) = LLVBARS;
+
+Indicator (*POW_1)(int) = POW;
+Indicator (*POW_2)(const Indicator&, int) = POW;
+Indicator (*POW_3)(price_t, int) = POW;
+
+Indicator (*SQRT_1)() = SQRT;
+Indicator (*SQRT_2)(const Indicator&) = SQRT;
+Indicator (*SQRT_3)(price_t) = SQRT;
+
+Indicator (*ROUND_1)(int) = ROUND;
+Indicator (*ROUND_2)(const Indicator&, int) = ROUND;
+Indicator (*ROUND_3)(price_t, int) = ROUND;
+
+Indicator (*ROUNDUP_1)(int) = ROUNDUP;
+Indicator (*ROUNDUP_2)(const Indicator&, int) = ROUNDUP;
+Indicator (*ROUNDUP_3)(price_t, int) = ROUNDUP;
+
+Indicator (*ROUNDDOWN_1)(int) = ROUNDDOWN;
+Indicator (*ROUNDDOWN_2)(const Indicator&, int) = ROUNDDOWN;
+Indicator (*ROUNDDOWN_3)(price_t, int) = ROUNDDOWN;
+
+Indicator (*FLOOR_1)() = FLOOR;
+Indicator (*FLOOR_2)(const Indicator&) = FLOOR;
+Indicator (*FLOOR_3)(price_t) = FLOOR;
+
+Indicator (*CEILING_1)() = CEILING;
+Indicator (*CEILING_2)(const Indicator&) = CEILING;
+Indicator (*CEILING_3)(price_t) = CEILING;
+
 
 void export_Indicator_build_in() {
     def("KDATA", KDATA1);
-    def("KDATA", KDATA2);
     def("KDATA", KDATA3);
 
     def("CLOSE", CLOSE1);
-    def("CLOSE", CLOSE2);
     def("CLOSE", CLOSE3);
 
     def("OPEN", OPEN1);
-    def("OPEN", OPEN2);
     def("OPEN", OPEN3);
 
     def("HIGH", HIGH1);
-    def("HIGH", HIGH2);
     def("HIGH", HIGH3);
 
     def("LOW", LOW1);
-    def("LOW", LOW2);
     def("LOW", LOW3);
 
     def("AMO", AMO1);
-    def("AMO", AMO2);
     def("AMO", AMO3);
 
     def("VOL", VOL1);
-    def("VOL", VOL2);
     def("VOL", VOL3);
 
     def("KDATA_PART", KDATA_PART1, (arg("data"), arg("kpart")));
-    def("KDATA_PART", KDATA_PART2, (arg("data"), arg("kpart")));
     def("KDATA_PART", KDATA_PART3, (arg("kpart")));
 
     def("PRICELIST", PRICELIST2, (arg("data"), arg("discard")=0));
@@ -164,7 +228,6 @@ void export_Indicator_build_in() {
 
     def("VIGOR", VIGOR_1, (arg("kdata"), arg("n")=2));
     def("VIGOR", VIGOR_2, (arg("n")=2));
-    def("VIGOR", VIGOR_3, (arg("ind"), arg("n")=2));
 
     def("SAFTYLOSS", SAFTYLOSS_1, (arg("n1")=10, arg("n2")=3, arg("p")=2.0));
     def("SAFTYLOSS", SAFTYLOSS_2, (arg("data"), arg("n1")=10, arg("n2")=3, arg("p")=2.0));
@@ -185,23 +248,97 @@ void export_Indicator_build_in() {
     def("LLV", LLV_1, (arg("n")=20));
     def("LLV", LLV_2, (arg("data"), arg("n")=20));
 
-    def("WEAVE", WEAVE_1);
-    def("WEAVE", WEAVE_2);
+    def("CVAL", CVAL_1, (arg("value")=0.0, arg("discard")=0));
+    def("CVAL", CVAL_2, (arg("data"), arg("value")=0.0, arg("discard")=0));
 
-    def("CVAL", CVAL_1, (arg("value")=0.0, arg("len")=0, arg("discard")=0));
-    def("CVAL", CVAL_2, (arg("data"), arg("value")=0.0));
+    def("LIUTONGPAN", LIUTONGPAN_1);
+    def("LIUTONGPAN", LIUTONGPAN_2);
+    def("HSL", HSL_1);
+    def("HSL", HSL_2);
 
-    def("IND_AND", IND_AND1);
-    def("IND_AND", IND_AND2);
-    def("IND_AND", IND_AND3);
+    def("WEAVE", WEAVE);
+    def("IF", IF_1);
+    def("IF", IF_2);
+    def("IF", IF_3);
+    def("IF", IF_4);
 
-    def("IND_OR", IND_OR1);
-    def("IND_OR", IND_OR2);
-    def("IND_OR", IND_OR3);
+    def("COUNT", COUNT_1, (arg("n")=20));
+    def("COUNT", COUNT_2, (arg("data"), arg("n")=20));
 
-    def("LIUTONGPAN", LIUTONGPAN);
-    def("HSL", HSL);
+    def("SUM", SUM_1, (arg("n")=20));
+    def("SUM", SUM_2, (arg("data"), arg("n")=20));
 
+    def("ABS", ABS_1);
+    def("ABS", ABS_2);
+    def("ABS", ABS_3);
+
+    def("NOT", NOT_1);
+    def("NOT", NOT_2);
+
+    def("SGN", SGN_1);
+    def("SGN", SGN_2);
+    def("SGN", SGN_3);
+
+    def("EXP", EXP_1);
+    def("EXP", EXP_2);
+    def("EXP", EXP_3);
+
+    def("MAX", MAX_1);
+    def("MAX", MAX_2);
+    def("MAX", MAX_3);
+
+    def("MIN", MIN_1);
+    def("MIN", MIN_2);
+    def("MIN", MIN_3);
+
+    def("BETWEEN", BETWEEN_1);
+    def("BETWEEN", BETWEEN_2);
+    def("BETWEEN", BETWEEN_3);
+    def("BETWEEN", BETWEEN_4);
+    def("BETWEEN", BETWEEN_5);
+    def("BETWEEN", BETWEEN_6);
+    def("BETWEEN", BETWEEN_7);
+    def("BETWEEN", BETWEEN_8);
+
+    def("LN", LN_1);
+    def("LN", LN_2);
+    def("LN", LN_3);
+
+    def("LOG", LOG_1);
+    def("LOG", LOG_2);
+    def("LOG", LOG_3);
+
+    def("HHVBARS", HHVBARS_1, (arg("n")=20));
+    def("HHVBARS", HHVBARS_2, (arg("data"), arg("n")=20));
+
+    def("LLVBARS", LLVBARS_1, (arg("n")=20));
+    def("LLVBARS", LLVBARS_2, (arg("data"), arg("n")=20));
+
+    def("POW", POW_1, (arg("n")));
+    def("POW", POW_2, (arg("data"), arg("n")));
+    def("POW", POW_3), (arg("data"), arg("n"));
+
+    def("SQRT", SQRT_1);
+    def("SQRT", SQRT_2);
+    def("SQRT", SQRT_3);
+
+    def("ROUND", ROUND_1, (arg("ndigits") = 2));
+    def("ROUND", ROUND_2, (arg("data"), arg("ndigits")=2));
+    def("ROUND", ROUND_3, (arg("data"), arg("ndigits")=2));
+
+    def("ROUNDUP", ROUNDUP_1, (arg("ndigits") = 2));
+    def("ROUNDUP", ROUNDUP_2, (arg("data"), arg("ndigits")=2));
+    def("ROUNDUP", ROUNDUP_3, (arg("data"), arg("ndigits")=2));
+
+    def("ROUNDDOWN", ROUNDDOWN_1, (arg("ndigits") = 2));
+    def("ROUNDDOWN", ROUNDDOWN_2, (arg("data"), arg("ndigits")=2));
+    def("ROUNDDOWN", ROUNDDOWN_3, (arg("data"), arg("ndigits")=2));
+
+    def("FLOOR", FLOOR_1);
+    def("FLOOR", FLOOR_2);
+    def("FLOOR", FLOOR_3);
+
+    def("CEILING", CEILING_1);
+    def("CEILING", CEILING_2);
+    def("CEILING", CEILING_3);    
 }
-
-

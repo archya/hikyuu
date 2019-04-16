@@ -6,6 +6,7 @@
  */
 
 #include "Indicator.h"
+#include "crt/CVAL.h"
 
 namespace hku {
 
@@ -14,24 +15,34 @@ HKU_API std::ostream & operator<<(std::ostream& os, const Indicator& indicator) 
     return os;
 }
 
-
 Indicator::Indicator(const IndicatorImpPtr& imp): m_imp(imp) {
 
 }
-
 
 Indicator::Indicator(const Indicator& indicator) {
     m_imp = indicator.m_imp;
 }
 
-
 Indicator::~Indicator() {
 
 }
 
-Indicator Indicator::operator()(const Indicator& ind) {
-    return m_imp ? Indicator((*m_imp)(ind)) : Indicator();
+string Indicator::formula() const {
+    return m_imp ? m_imp->formula() : "Indicator";
 }
+
+void Indicator::setContext(const Stock& stock, const KQuery& query) {
+    if (m_imp) m_imp->setContext(stock, query);
+}
+
+void Indicator::setContext(const KData& k) {
+    if (m_imp) m_imp->setContext(k);
+}
+
+KData Indicator::getContext() const {
+    return m_imp ? m_imp->getContext() : KData();
+}
+
 
 Indicator& Indicator::operator=(const Indicator& indicator) {
     if (this == &indicator)
@@ -43,732 +54,283 @@ Indicator& Indicator::operator=(const Indicator& indicator) {
     return *this;
 }
 
-
-string Indicator::name() const {
-    return m_imp ? m_imp->name() : "IndicatorImp";
-}
-
-void Indicator::name(const string& name) {
-    if (m_imp) {
-        m_imp->name(name);
+PriceList Indicator::getResultAsPriceList(size_t num) const {
+    if (!m_imp) {
+        HKU_WARN("indicator imptr is null! [Indicator::getResultAsPriceList]");
+        return PriceList();
     }
+    return m_imp->getResultAsPriceList(num);
 }
 
-string Indicator::long_name() const {
-    return m_imp ? m_imp->long_name() : "IndicatorImp()";
+Indicator Indicator::getResult(size_t num) const {
+    if (!m_imp) {
+        HKU_WARN("indicator imptr is null! [Indicator::getResult]");
+        return Indicator();
+    }
+    return m_imp->getResult(num);
 }
 
-size_t Indicator::discard() const {
-    return m_imp ? m_imp->discard() : 0 ;
-}
+Indicator Indicator::operator()(const Indicator& ind) {
+    if (!m_imp)
+        return Indicator();
 
-void Indicator::setDiscard(size_t discard) {
-    if (m_imp)
-        m_imp->setDiscard(discard);
-}
-
-size_t Indicator::getResultNumber() const {
-    return m_imp ? m_imp->getResultNumber() : 0;
-}
-
-bool Indicator::empty() const {
-    return (!m_imp || m_imp->size() == 0) ? true : false;
-}
-
-size_t Indicator::size() const {
-    return m_imp ? m_imp->size() : 0;
+    if (!ind.getImp())
+        return Indicator(m_imp);
+    
+    IndicatorImpPtr p = m_imp->clone();
+    p->add(IndicatorImp::OP, IndicatorImpPtr(), ind.getImp());
+    return p->calculate();
 }
 
 HKU_API Indicator operator+(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() == 0 || ind1.size() != ind2.size()) {
+    if (!ind1.getImp() || !ind2.getImp()) {
         return Indicator();
     }
 
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind1.get(i, r) + ind2.get(i, r), i, r);
-        }
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::ADD, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator-(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
     }
 
-    return Indicator(imp);
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::SUB, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator*(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::MUL, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator/(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::DIV, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator==(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::EQ, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator!=(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::NE, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator>(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::GT, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator<(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::LT, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator>=(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::GE, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator<=(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::LE, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator&(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::AND, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+HKU_API Indicator operator|(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        return Indicator();
+    }
+
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::OR, ind1.getImp(), ind2.getImp());
+    return p->calculate();
 }
 
 
 HKU_API Indicator operator+(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind.get(i, r) + val, i, r);
-        }
-    }
-
-    return Indicator(imp);
+    return ind + CVAL(ind, val);
 }
-
 
 HKU_API Indicator operator+(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind.get(i, r) + val, i, r);
-        }
-    }
-
-    return Indicator(imp);
-}
-
-HKU_API Indicator operator-(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind1.get(i, r) - ind2.get(i, r), i, r);
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) + ind;
 }
 
 HKU_API Indicator operator-(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind.get(i, r) - val, i, r);
-        }
-    }
-
-    return Indicator(imp);
+    return ind - CVAL(ind, val);
 }
 
 HKU_API Indicator operator-(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(val - ind.get(i, r), i, r);
-        }
-    }
-
-    return Indicator(imp);
-}
-
-
-HKU_API Indicator operator*(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind1.get(i, r) * ind2.get(i, r), i, r);
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) - ind;
 }
 
 HKU_API Indicator operator*(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind.get(i, r) * val, i, r);
-        }
-    }
-
-    return Indicator(imp);
+    return ind * CVAL(ind, val);
 }
 
 HKU_API Indicator operator*(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            imp->_set(ind.get(i, r) * val, i, r);
-        }
-    }
-
-    return Indicator(imp);
-}
-
-
-HKU_API Indicator operator/(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind2.get(i, r) == 0.0) {
-                imp->_set(Null<price_t>(), i, r);
-            } else {
-                imp->_set(ind1.get(i, r) / ind2.get(i, r), i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) * ind;
 }
 
 HKU_API Indicator operator/(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (val == 0.0) {
-                imp->_set(Null<price_t>(), i, r);
-            } else {
-                imp->_set(ind.get(i, r) / val, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind / CVAL(ind, val);
 }
 
 HKU_API Indicator operator/(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind.get(i, r) == 0.0) {
-                imp->_set(Null<price_t>(), i, r);
-            } else {
-                imp->_set(val / ind.get(i, r), i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-HKU_API Indicator operator==(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind1.get(i, r) - ind2.get(i, r)) < IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) / ind;
 }
 
 HKU_API Indicator operator==(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind.get(i, r) - val) < IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind == CVAL(ind, val);
 }
 
 HKU_API Indicator operator==(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind.get(i, r) - val) < IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-
-HKU_API Indicator operator!=(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind1.get(i, r) - ind2.get(i, r)) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) == ind;
 }
 
 HKU_API Indicator operator!=(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind.get(i, r) - val) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind != CVAL(ind, val);
 }
 
 HKU_API Indicator operator!=(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (std::fabs(ind.get(i, r) - val) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-
-HKU_API Indicator operator>(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((ind1.get(i, r) - ind2.get(i, r)) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) != ind;
 }
 
 HKU_API Indicator operator>(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((ind.get(i, r) - val) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind > CVAL(ind, val);
 }
 
 HKU_API Indicator operator>(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((val - ind.get(i, r)) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-HKU_API Indicator operator<(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((ind2.get(i, r) - ind1.get(i, r)) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) > ind;
 }
 
 HKU_API Indicator operator<(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((val - ind.get(i, r)) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind < CVAL(ind, val);
 }
 
 HKU_API Indicator operator<(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if ((ind.get(i, r) - val) >= IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-
-HKU_API Indicator operator>=(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind1.get(i, r) > ind2.get(i,r) - IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) < ind;
 }
 
 HKU_API Indicator operator>=(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind.get(i, r) > val - IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind >= CVAL(ind, val);
 }
 
 HKU_API Indicator operator>=(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (val > ind.get(i,r) - IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
-}
-
-HKU_API Indicator operator<=(const Indicator& ind1, const Indicator& ind2) {
-    if (ind1.size() != ind2.size() || ind1.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = std::min(ind1.getResultNumber(), ind2.getResultNumber());
-    size_t total = ind1.size();
-    size_t discard = std::max(ind1.discard(), ind2.discard());
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind1.get(i, r) < ind2.get(i,r) + IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return CVAL(ind, val) >= ind;
 }
 
 HKU_API Indicator operator<=(const Indicator& ind, price_t val) {
-    if (ind.size() == 0) {
-        return Indicator();
-    }
-
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (ind.get(i, r) < val + IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    return ind <= CVAL(ind, val);
 }
 
 HKU_API Indicator operator<=(price_t val, const Indicator& ind) {
-    if (ind.size() == 0) {
+    return CVAL(ind, val) <= ind;
+}
+
+HKU_API Indicator operator&(const Indicator& ind, price_t val) {
+    return ind & CVAL(ind, val);
+}
+
+HKU_API Indicator operator&(price_t val, const Indicator& ind) {
+    return CVAL(ind, val) & ind;
+}
+
+HKU_API Indicator operator|(const Indicator& ind, price_t val) {
+    return ind | CVAL(ind, val);
+}
+
+HKU_API Indicator operator|(price_t val, const Indicator& ind) {
+    return CVAL(ind, val) | ind;
+}
+
+Indicator HKU_API WEAVE(const Indicator& ind1, const Indicator& ind2) {
+    if (!ind1.getImp() || !ind2.getImp()) {
+        HKU_ERROR("ind1 or ind2 is Null Indicator! [WEAVE]");
+        return Indicator();
+    }
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add(IndicatorImp::WEAVE, ind1.getImp(), ind2.getImp());
+    return p->calculate();
+}
+
+Indicator HKU_API IF(const Indicator& ind1, 
+        const Indicator& ind2, const Indicator& ind3) {
+    if (!ind1.getImp() || !ind2.getImp() || !ind3.getImp()) {
+        HKU_ERROR("Exists null indicator! [IF]");
         return Indicator();
     }
 
-    size_t result_number = ind.getResultNumber();
-    size_t total = ind.size();
-    size_t discard = ind.discard();
-    IndicatorImpPtr imp(new IndicatorImp());
-    imp->_readyBuffer(total, result_number);
-    imp->setDiscard(discard);
-    for (size_t i = discard; i < total; ++i) {
-        for (size_t r = 0; r < result_number; ++r) {
-            if (val < ind.get(i, r) + IND_EQ_THRESHOLD) {
-                imp->_set(1, i, r);
-            } else {
-                imp->_set(0, i, r);
-            }
-        }
-    }
-
-    return Indicator(imp);
+    IndicatorImpPtr p = make_shared<IndicatorImp>();
+    p->add_if(ind1.getImp(), ind2.getImp(), ind3.getImp());
+    return p->calculate();
+}
+    
+Indicator HKU_API IF(const Indicator& x, price_t a, const Indicator& b) {
+    return IF(x, CVAL(b, a), b);
 }
 
+Indicator HKU_API IF(const Indicator& x, const Indicator& a, price_t b) {
+    return IF(x, a, CVAL(a, b));
+}
+
+Indicator HKU_API IF(const Indicator& x, price_t a, price_t b) {
+    return IF(x, CVAL(x, a), CVAL(x, b));
+}
 
 } /* namespace hku */

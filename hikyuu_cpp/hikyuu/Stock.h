@@ -19,6 +19,7 @@ class HKU_API StockManager;
 class KDataDriver;
 typedef shared_ptr<KDataDriver> KDataDriverPtr;
 class HKU_API KData;
+class HKU_API Parameter;
 
 /**
  * Stock基类，Application中一般使用StockPtr进行操作
@@ -161,6 +162,17 @@ public:
 
     /** 获取历史分笔数据 */
     TransList getTransList(const KQuery& query) const;
+
+    /**
+     * 获取当前财务信息
+     */
+    Parameter getFinanceInfo() const;
+    
+    /** 
+     * 获取历史财务信息
+     * @param date 指定日期必须是0331、0630、0930、1231，如 Datetime(201109300000)
+     */
+    PriceList getHistoryFinanceInfo(const Datetime& date) const;
 
     /** 设置权息信息 */
     void setWeightList(const StockWeightList&);

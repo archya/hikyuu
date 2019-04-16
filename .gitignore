@@ -20,6 +20,7 @@
 .pyproject
 .vscode
 .vs
+.ipynb_checkpoints
 temp.txt
 release.x64.version.h
 release.x86.version.h
@@ -27,6 +28,7 @@ hikyuu.code-workspace
 /install
 /build
 /docs/build
+/docs/notepad-workspace
 *~
 install
 .DS_Store

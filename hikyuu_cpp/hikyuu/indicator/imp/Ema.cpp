@@ -7,6 +7,11 @@
 
 #include "Ema.h"
 
+#if HKU_SUPPORT_SERIALIZATION
+BOOST_CLASS_EXPORT(hku::Ema)
+#endif
+
+
 namespace hku {
 
 Ema::Ema(): IndicatorImp("EMA", 1) {
@@ -29,14 +34,13 @@ bool Ema::check() {
 
 void Ema::_calculate(const Indicator& indicator) {
     size_t total = indicator.size();
-
-    int n = getParam<int>("n");
-
     m_discard = indicator.discard();
     if (total <= m_discard) {
+        m_discard = total;
         return;
     }
 
+    int n = getParam<int>("n");
     size_t startPos = discard();
     price_t ema = indicator[startPos];
     _set(ema, startPos);
@@ -56,10 +60,7 @@ Indicator HKU_API EMA(int n) {
 }
 
 Indicator HKU_API EMA(const Indicator& data, int n) {
-    IndicatorImpPtr p = make_shared<Ema>();
-    p->setParam<int>("n", n);
-    p->calculate(data);
-    return Indicator(p);
+    return EMA(n)(data);
 }
 
 } /* namespace hku */

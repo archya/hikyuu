@@ -8,6 +8,7 @@
 #include "KData.h"
 #include "StockManager.h"
 #include "KDataBufferImp.h"
+#include "indicator/crt/KDATA.h"
 #include <fstream>
 
 namespace hku {
@@ -29,7 +30,7 @@ string KData::toString() const {
 
 
 KData::KData(const Stock& stock, const KQuery& query) {
-    if (stock.isNull()) {        
+    if (stock.isNull()) {
         return;
     }
 
@@ -70,6 +71,30 @@ void KData::tocsv(const string& filename) {
     file.close();
 }
 
+
+Indicator KData::open() const {
+    return OPEN(*this);
+}
+
+Indicator KData::close() const {
+    return CLOSE(*this);
+}
+
+Indicator KData::low() const {
+    return LOW(*this);
+}
+
+Indicator KData::high() const {
+    return HIGH(*this);
+}
+
+Indicator KData::vol() const {
+    return VOL(*this);
+}
+
+Indicator KData::amo() const {
+    return AMO(*this);
+}
 
 } /* namespace */
 

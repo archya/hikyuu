@@ -56,6 +56,19 @@ public:
     /** 返回形如：Name(param1_val,param2_val,...) */
     string long_name() const;
 
+    /** 克隆操作 */
+    Indicator clone() const;
+
+    /** 设置上下文 */
+    void setContext(const Stock&, const KQuery&);
+    void setContext(const KData&);
+
+    /** 获取上下文 */
+    KData getContext() const;
+
+    /** 显示指标公式 */
+    string formula() const;
+
     /** 结果中需抛弃的个数 */
     size_t discard() const;
 
@@ -71,31 +84,27 @@ public:
     /** 获取大小 **/
     size_t size() const;
 
-    /**
-     * 只获取第一个结果集中相应位置输出，等同于get(pos, 0)
-     * @note 不做下标越界检查，也不抛出异常
-     */
-    price_t operator[](size_t pos) const {
-        return m_imp->get(pos, 0);
-    }
+    /** 只获取第一个结果集中相应位置输出，等同于get(pos, 0) */
+    price_t operator[](size_t pos) const;
 
     /**
      * 获取第num个结果集中指定位置的数据
      * @param pos 结果集中的位置
      * @param num 第几个结果集
-     * @note 不做下标越界检查，不会抛出异常
      */
-    price_t get(size_t pos, size_t num = 0) const {
-        return m_imp->get(pos, num);
-    }
+    price_t get(size_t pos, size_t num = 0) const;
 
-    Indicator getResult(size_t num) const {
-        return m_imp->getResult(num);
-    }
+    /** 
+     * 以指标的方式获取指定的结果集 
+     * @param num 指定的结果集
+     */    
+    Indicator getResult(size_t num) const;
 
-    PriceList getResultAsPriceList(size_t num) const {
-        return m_imp->getResultAsPriceList(num);
-    }
+    /**
+     * 以 PriceList 的方式获取指定的结果集
+     * @param num 指定的结果集
+     */
+    PriceList getResultAsPriceList(size_t num) const;
 
     template <typename ValueType>
     void setParam(const string& name, const ValueType& value) {
@@ -128,112 +137,144 @@ private:
 };
 
 
-/**
- * Indicator实例相加，两者的size必须相等，否在返回空
- * @return 1) 相加的两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- * @ingroup Indicator
- */
+inline string Indicator::name() const {
+    return m_imp ? m_imp->name() : "IndicatorImp";
+}
+
+inline void Indicator::name(const string& name) {
+    if (m_imp) {
+        m_imp->name(name);
+    }
+}
+
+inline string Indicator::long_name() const {
+    return m_imp ? m_imp->long_name() : "IndicatorImp()";
+}
+
+inline size_t Indicator::discard() const {
+    return m_imp ? m_imp->discard() : 0 ;
+}
+
+inline void Indicator::setDiscard(size_t discard) {
+    if (m_imp) {
+        m_imp->setDiscard(discard);
+    }
+}
+
+inline size_t Indicator::getResultNumber() const {
+    return m_imp ? m_imp->getResultNumber() : 0;
+}
+
+inline bool Indicator::empty() const {
+    return (!m_imp || m_imp->size() == 0) ? true : false;
+}
+
+inline size_t Indicator::size() const {
+    return m_imp ? m_imp->size() : 0;
+}
+
+inline Indicator Indicator::clone() const {
+    return m_imp ? Indicator(m_imp->clone()) : Indicator();
+}
+
+inline price_t Indicator::operator[](size_t pos) const {
+#if CHECK_ACCESS_BOUND
+    if (!m_imp) {
+        throw(std::out_of_range(
+            "Try to access empty indicator! [Indicator::get]"));
+    }
+#endif        
+    return m_imp->get(pos, 0);
+}
+
+inline price_t Indicator::get(size_t pos, size_t num) const {
+#if CHECK_ACCESS_BOUND
+    if (!m_imp) {
+        throw(std::out_of_range(
+            "Try to access empty indicator! [Indicator::get]"));
+    }
+#endif        
+    return m_imp->get(pos, num);
+}
+
+
+//--------------------------------------------------------------
+// 指标操作
+//-------------------------------------------------------------
 HKU_API Indicator operator+(const Indicator&, const Indicator&);
+HKU_API Indicator operator-(const Indicator&, const Indicator&);
+HKU_API Indicator operator*(const Indicator&, const Indicator&);
+HKU_API Indicator operator/(const Indicator&, const Indicator&);
+HKU_API Indicator operator==(const Indicator&, const Indicator&);
+HKU_API Indicator operator!=(const Indicator&, const Indicator&);
+HKU_API Indicator operator>(const Indicator&, const Indicator&);
+HKU_API Indicator operator<(const Indicator&, const Indicator&);
+HKU_API Indicator operator>=(const Indicator&, const Indicator&);
+HKU_API Indicator operator<=(const Indicator&, const Indicator&);
+HKU_API Indicator operator&(const Indicator&, const Indicator&);
+HKU_API Indicator operator|(const Indicator&, const Indicator&);
+
 HKU_API Indicator operator+(const Indicator&, price_t);
 HKU_API Indicator operator+(price_t, const Indicator&);
 
-/**
- * Indicator实例相减，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- * @ingroup Indicator
- */
-HKU_API Indicator operator-(const Indicator&, const Indicator&);
 HKU_API Indicator operator-(const Indicator&, price_t);
 HKU_API Indicator operator-(price_t, const Indicator&);
 
-/**
- * Indicator实例相乘，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- * @ingroup Indicator
- */
-HKU_API Indicator operator*(const Indicator&, const Indicator&);
 HKU_API Indicator operator*(const Indicator&, price_t);
 HKU_API Indicator operator*(price_t, const Indicator&);
 
-/**
- * Indicator实例相除，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如被除中存在为零的数据，则对应位置结果为Null<price_t>()
- * @ingroup Indicator
- */
-HKU_API Indicator operator/(const Indicator&, const Indicator&);
 HKU_API Indicator operator/(const Indicator&, price_t);
 HKU_API Indicator operator/(price_t, const Indicator&);
 
-/**
- * Indicator实例相等，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果相同位置的值相等为1.0, 否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator==(const Indicator&, const Indicator&);
 HKU_API Indicator operator==(const Indicator&, price_t);
 HKU_API Indicator operator==(price_t, const Indicator&);
 
-/**
- * Indicator实例不相等，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果相同位置的值不相等为1.0，否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator!=(const Indicator&, const Indicator&);
 HKU_API Indicator operator!=(const Indicator&, price_t);
 HKU_API Indicator operator!=(price_t, const Indicator&);
 
-/**
- * Indicator实例大于操作，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果ind1相同位置的值大于ind2相同位置的值则为1.0，否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator>(const Indicator&, const Indicator&);
 HKU_API Indicator operator>(const Indicator&, price_t);
 HKU_API Indicator operator>(price_t, const Indicator&);
 
-/**
- * Indicator实例小于操作，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果ind1相同位置的值小于ind2相同位置的值则为1.0，否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator<(const Indicator&, const Indicator&);
 HKU_API Indicator operator<(const Indicator&, price_t);
 HKU_API Indicator operator<(price_t, const Indicator&);
 
-/**
- * Indicator实例大于操作，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果ind1相同位置的值大于等于ind2相同位置的值则为1.0，否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator>=(const Indicator&, const Indicator&);
 HKU_API Indicator operator>=(const Indicator&, price_t);
 HKU_API Indicator operator>=(price_t, const Indicator&);
 
-/**
- * Indicator实例小于操作，两者的size必须相等，否在返回空
- * @return 1) 两个实例的size必须相等，否在返回空实例
- *         2）如果两个实例的resultNumber不等，则取最小的resultNumber
- *         3）如果ind1相同位置的值小于等于ind2相同位置的值则为1.0，否则为0.0
- * @ingroup Indicator
- */
-HKU_API Indicator operator<=(const Indicator&, const Indicator&);
 HKU_API Indicator operator<=(const Indicator&, price_t);
 HKU_API Indicator operator<=(price_t, const Indicator&);
+
+HKU_API Indicator operator&(const Indicator&, price_t);
+HKU_API Indicator operator&(price_t, const Indicator&);
+
+HKU_API Indicator operator|(const Indicator&, price_t);
+HKU_API Indicator operator|(price_t, const Indicator&);
+
+/**
+ * 将ind1和ind2的结果组合在一起放在一个Indicator中。如ind = WEAVE(ind1, ind2)
+ * 则此时ind包含多个结果，按ind1、ind2的顺序存放
+ * @param ind1 指标1
+ * @param ind2 指标2
+ * @ingroup Indicator
+ */
+Indicator HKU_API WEAVE(const Indicator& ind1, const Indicator& ind2);
+
+/**
+ * 条件函数, 根据条件求不同的值。
+ * @details
+ * <pre>
+ * 用法：IF(X,A,B)若X不为0则返回A,否则返回B
+ * 例如：IF(CLOSE>OPEN,HIGH,LOW)表示该周期收阳则返回最高值,否则返回最低值
+ * </pre>
+ * @param x 条件指标
+ * @param a 待选指标 a
+ * @param b 待选指标 b
+ * @ingroup Indicator
+ */
+Indicator HKU_API IF(const Indicator& x, const Indicator& a, const Indicator& b);
+Indicator HKU_API IF(const Indicator& x, price_t a, const Indicator& b);
+Indicator HKU_API IF(const Indicator& x, const Indicator& a, price_t b);
+Indicator HKU_API IF(const Indicator& x, price_t a, price_t b);
 
 } /* namespace hku */
 #endif /* INDICATOR_H_ */
